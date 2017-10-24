@@ -3,21 +3,16 @@
   (:require [org.httpkit.client :as http]
             [net.cgrand.enlive-html :as html]
             [clojure.string :as string]
-            [clojure.repl :as repl])
+            [clojure.repl :as repl]
+            [clojure.java.io :as io])
   (:import java.io.StringReader))
 
-(defn get-body [url]
-  (:body @(http/get url)))
+(def html-string (atom ""))
 
-(get-body "https://9gag.com/")
-
-(def response @(http/get "https://9gag.com/"))
-
-(http/get "http://host.com/path" options
-          (fn [{:keys [status headers body error]}] ;; asynchronous response handling
-            (if error
-              (println "Failed, exception is " error)
-              (println "Async HTTP GET: " status))))
+(defn copy [uri file]
+  (with-open [in (io/input-stream uri)
+              out (io/output-stream file)]
+    (io/copy in out)))
 
 (defn get-resource [html-string]
   (-> html-string
@@ -34,4 +29,33 @@
       get-resource
       select-image))
 
-(def image-links (get-image-link (:body response)))
+(http/get "https://aphyr.com/posts/311-clojure-from-the-ground-up-logistics"
+          (fn [{:keys [status headers body error]}] ;; asynchronous response handling
+            (if error
+              (println "Failed, exception is " error)
+              (do
+                (println (str "mantab" body))
+                (swap! html-string (fn [_] body))))))
+
+(defn- fetch-photo!
+  [url]
+  (let [req (http/get url {:as :byte-array :throw-exceptions false})]
+    (if (= (:status req) 200)
+      (:body req))))
+
+(defn- save-photo!
+  [photo]
+  (let [p (fetch-photo! (:url photo))]
+    (if (not (nil? p))
+      (with-open [w (io/output-stream (str "photos/" (:id photo) ".jpg"))]
+        (.write w p)))))
+
+(defn fetch-to-file [url file]
+  (with-open [in (io/input-stream url) 
+              out (io/output-stream file)]
+    (io/copy in out)))
+
+(def image-links (get-image-link @html-string))
+
+(doseq [x image-links]
+  (print x))
