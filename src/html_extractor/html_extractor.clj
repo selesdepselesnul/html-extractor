@@ -61,7 +61,21 @@
 
 (def image-links (get-image-link @html-string))
 
-image-links
+(defn get-image-name [url]
+  (last (string/split url #"/")))
 
-(doseq [x image-links]
-  (print x))
+(defn get-image-ext [image]
+  (last (string/split image #"\.")))
+
+(defn is-extension-valid? [extension]
+  (contains? #{"jpg" "png" "svg"} extension))
+
+(defn get-only-valid-image-name [image-links]
+  (->> image-links
+       (map #({:link % :image-name (get-image-name %)}))
+       (filter #(is-extension-valid? (get-image-ext (:image-name %))))
+       (map #(:link %))))
+
+(get-only-valid-image-name image-links)
+;;
+
