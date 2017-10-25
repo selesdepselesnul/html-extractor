@@ -29,7 +29,7 @@
       get-resource
       select-image))
 
-(http/get "https://aphyr.com/posts/311-clojure-from-the-ground-up-logistics"
+(http/get "https://techcrunch.com/2017/10/24/here-are-the-cars-that-support-iphone-8-and-iphone-x-wireless-charging/"
           (fn [{:keys [status headers body error]}] ;; asynchronous response handling
             (if error
               (println "Failed, exception is " error)
@@ -55,7 +55,13 @@
               out (io/output-stream file)]
     (io/copy in out)))
 
+@html-string
+
+(get-image-link @html-string)
+
 (def image-links (get-image-link @html-string))
+
+image-links
 
 (doseq [x image-links]
   (print x))
