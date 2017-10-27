@@ -29,7 +29,7 @@
       get-resource
       select-image))
 
-(http/get "https://techcrunch.com/2017/10/24/here-are-the-cars-that-support-iphone-8-and-iphone-x-wireless-charging/"
+(http/get "http://www.livescience.com/"
           (fn [{:keys [status headers body error]}] ;; asynchronous response handling
             (if error
               (println "Failed, exception is " error)
@@ -37,29 +37,18 @@
                 (println (str "mantab" body))
                 (swap! html-string (fn [_] body))))))
 
-(defn- fetch-photo!
-  [url]
-  (let [req (http/get url {:as :byte-array :throw-exceptions false})]
-    (if (= (:status req) 200)
-      (:body req))))
-
-(defn- save-photo!
-  [photo]
-  (let [p (fetch-photo! (:url photo))]
-    (if (not (nil? p))
-      (with-open [w (io/output-stream (str "photos/" (:id photo) ".jpg"))]
-        (.write w p)))))
-
 (defn fetch-to-file [url file]
   (with-open [in (io/input-stream url) 
               out (io/output-stream file)]
     (io/copy in out)))
 
-@html-string
-
-(get-image-link @html-string)
-
 (def image-links (get-image-link @html-string))
+
+(defn is-valid-image-link? [image-link]
+  (-> image-link 
+      get-image-name
+      get-image-ext
+      is-extension-valid?))
 
 (defn get-image-name [url]
   (last (string/split url #"/")))
@@ -72,10 +61,8 @@
 
 (defn get-only-valid-image-name [image-links]
   (->> image-links
-       (map #({:link % :image-name (get-image-name %)}))
-       (filter #(is-extension-valid? (get-image-ext (:image-name %))))
-       (map #(:link %))))
+       (filter is-valid-image-link?)))
 
-(get-only-valid-image-name image-links)
-;;
-
+(doseq [x (get-only-valid-image-name image-links)]
+  (print x)
+  (fetch-to-file x (get-image-name x)))
