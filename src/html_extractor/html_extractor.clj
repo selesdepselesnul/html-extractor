@@ -4,10 +4,11 @@
             [net.cgrand.enlive-html :as html]
             [clojure.string :as string]
             [clojure.repl :as repl]
-            [clojure.java.io :as io])
-  (:import java.io.StringReader))
-
-(def html-string (atom ""))
+            [clojure.java.io :as io]
+            [lambdaisland.uri :refer [uri]]
+            [clojure.pprint :refer [pprint]])
+  (:import (java.io.StringReader)
+           (java.net URL)))
 
 (defn copy [uri file]
   (with-open [in (io/input-stream uri)
@@ -29,26 +30,12 @@
       get-resource
       select-image))
 
-(http/get "http://www.livescience.com/"
-          (fn [{:keys [status headers body error]}] ;; asynchronous response handling
-            (if error
-              (println "Failed, exception is " error)
-              (do
-                (println (str "mantab" body))
-                (swap! html-string (fn [_] body))))))
-
-(defn fetch-to-file [url file]
-  (with-open [in (io/input-stream url) 
-              out (io/output-stream file)]
-    (io/copy in out)))
-
-(def image-links (get-image-link @html-string))
-
-(defn is-valid-image-link? [image-link]
-  (-> image-link 
-      get-image-name
-      get-image-ext
-      is-extension-valid?))
+(defn fetch-to-file [file url]
+  (try (with-open [in (io/input-stream url) 
+                   out (io/output-stream file)]
+         (io/copy in out)
+         url)
+       (catch Exception e)))
 
 (defn get-image-name [url]
   (last (string/split url #"/")))
@@ -59,10 +46,42 @@
 (defn is-extension-valid? [extension]
   (contains? #{"jpg" "png" "svg"} extension))
 
+(defn is-valid-image-link? [image-link]
+  (-> image-link 
+      get-image-name
+      get-image-ext
+      is-extension-valid?))
+
+(defn is-full-url? [url]
+  (.getPath (URL. url)))
+
+(defn map-to-valid-image-url [base-url url]
+  (str base-url url))
+
 (defn get-only-valid-image-name [image-links]
   (->> image-links
        (filter is-valid-image-link?)))
 
-(doseq [x (get-only-valid-image-name image-links)]
-  (print x)
-  (fetch-to-file x (get-image-name x)))
+(defn fetch-to-local [url image-links]
+  (doseq [x (get-only-valid-image-name image-links)] 
+    (let [image-name (get-image-name x) 
+          fetch-to-file-with-url (partial fetch-to-file image-name)
+          url-head-to-try ["https:" "https://" "http:" "http://"]
+          n (count url-head-to-try)]
+      (loop [is-downloaded nil i 0]
+        (when (and (not is-downloaded) (< i n)) 
+          (recur
+           (fetch-to-file-with-url (str (nth url-head-to-try i) x))
+           (+ i 1)))))))
+
+(defn get-base-url [url]
+  (str (:scheme url) "://" (:host url)))
+
+(defn fetch-url [url]
+  (http/get url
+            (fn [{:keys [status headers body error]}] ;; asynchronous response handling
+              (if error
+                (println "Failed, exception is " error)
+                (do
+                  (print (->> (get-image-link body)
+                              (fetch-to-local url))))))))
