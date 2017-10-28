@@ -83,5 +83,5 @@
               (if error
                 (println "Failed, exception is " error)
                 (do
-                  (print (->> (get-image-link body)
-                              (fetch-to-local url))))))))
+                  (->> (get-image-link body)
+                       (fetch-to-local url)))))))
