@@ -44,7 +44,7 @@
   (last (string/split image #"\.")))
 
 (defn is-extension-valid? [extension]
-  (contains? #{"jpg" "png" "svg"} extension))
+  (contains? #{"jpg" "png" "svg" "gif"} extension))
 
 (defn is-valid-image-link? [image-link]
   (-> image-link 
@@ -62,17 +62,16 @@
   (->> image-links
        (filter is-valid-image-link?)))
 
-(defn fetch-no-protocol-image [image-name url]
-  (loop [protocol-patterns ["https:" "https://" "http:" "http://"]]
-    (let [current-protocol-pattern (first protocol-patterns)])
-    (when (and (not-empty protocol-patterns)
-               (not (fetch-image image-name (str (first protocol-patterns) url))))
-      (recur (rest protocol-patterns)))))
+(defn fetch-no-protocol-image
+  ([image-name url] (fetch-no-protocol-image image-name url ["https:" "https://" "http:" "http://"]))
+  ([image-name url protocol-patterns]
+   (when (and (not-empty protocol-patterns)
+              (not (fetch-image image-name (str (first protocol-patterns) url))))
+     (recur image-name url (rest protocol-patterns)))))
 
 (defn fetch-images [url image-links]
   (doseq [x (get-only-valid-image-name image-links)]
-    (let [image-name (get-image-name x)]
-      (print (str "fetch " image-name " " x))
+    (let [image-name (get-image-name x)] 
       (when (not (fetch-image (get-image-name x) x))  
         (fetch-no-protocol-image image-name x)))))
 
@@ -83,4 +82,4 @@
                 (println "Failed, exception is " error)
                 (do
                   (->> (get-image-link body)
-                       (fetch-images url))))))))
+                       (fetch-images url)))))))
