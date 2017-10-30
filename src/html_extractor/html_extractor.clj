@@ -30,7 +30,7 @@
       get-resource
       select-image))
 
-(defn fetch-to-file [file url]
+(defn fetch-image [file url]
   (try (with-open [in (io/input-stream url) 
                    out (io/output-stream file)]
          (io/copy in out)
@@ -62,20 +62,19 @@
   (->> image-links
        (filter is-valid-image-link?)))
 
-(defn fetch-to-local [url image-links]
-  (doseq [x (get-only-valid-image-name image-links)] 
-    (let [image-name (get-image-name x) 
-          fetch-to-file-with-url (partial fetch-to-file image-name)
-          url-head-to-try ["https:" "https://" "http:" "http://"]
-          n (count url-head-to-try)]
-      (loop [is-downloaded nil i 0]
-        (when (and (not is-downloaded) (< i n)) 
-          (recur
-           (fetch-to-file-with-url (str (nth url-head-to-try i) x))
-           (+ i 1)))))))
+(defn fetch-no-protocol-image [image-name url]
+  (loop [protocol-patterns ["https:" "https://" "http:" "http://"]]
+    (let [current-protocol-pattern (first protocol-patterns)])
+    (when (and (not-empty protocol-patterns)
+               (not (fetch-image image-name (str (first protocol-patterns) url))))
+      (recur (rest protocol-patterns)))))
 
-(defn get-base-url [url]
-  (str (:scheme url) "://" (:host url)))
+(defn fetch-images [url image-links]
+  (doseq [x (get-only-valid-image-name image-links)]
+    (let [image-name (get-image-name x)]
+      (print (str "fetch " image-name " " x))
+      (when (not (fetch-image (get-image-name x) x))  
+        (fetch-no-protocol-image image-name x)))))
 
 (defn fetch-url [url]
   (http/get url
@@ -84,4 +83,4 @@
                 (println "Failed, exception is " error)
                 (do
                   (->> (get-image-link body)
-                       (fetch-to-local url)))))))
+                       (fetch-images url))))))))
