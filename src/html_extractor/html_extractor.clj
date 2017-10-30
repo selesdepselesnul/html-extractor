@@ -80,6 +80,7 @@
             (fn [{:keys [status headers body error]}] ;; asynchronous response handling
               (if error
                 (println "Failed, exception is " error)
-                (do
-                  (->> (get-image-link body)
-                       (fetch-images url)))))))
+                (->> (get-image-link body)
+                     (fetch-images url))))))
+
+
