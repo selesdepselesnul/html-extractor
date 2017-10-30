@@ -30,7 +30,7 @@
       get-resource
       select-image))
 
-(defn fetch-image [file url]
+(defn fetch-image [file url] 
   (try (with-open [in (io/input-stream url) 
                    out (io/output-stream file)]
          (io/copy in out)
@@ -84,7 +84,7 @@
   (relative? (uri url)))
 
 (defn fetch-images [url image-links]
-  (doseq [x (get-only-valid-image-name image-links)]
+  (doseq [x image-links]
     (let [image-name (get-image-name x)]
       (if (is-url-relative? x) 
         (when (not (fetch-relative-url-image image-name
@@ -100,7 +100,3 @@
                 (println "Failed, exception is : " error)
                 (->> (get-image-link body)
                      (fetch-images url))))))
-
-
-
-
