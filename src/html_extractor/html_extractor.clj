@@ -5,7 +5,7 @@
             [clojure.string :as string]
             [clojure.repl :as repl]
             [clojure.java.io :as io]
-            [lambdaisland.uri :refer [uri]]
+            [lambdaisland.uri :refer [uri relative?]]
             [clojure.pprint :refer [pprint]])
   (:import (java.io.StringReader)
            (java.net URL)))
@@ -69,18 +69,38 @@
               (not (fetch-image image-name (str (first protocol-patterns) url))))
      (recur image-name url (rest protocol-patterns)))))
 
+(defn make-full-url [url relative-url]
+  (let [uri-obj (uri url)
+        {scheme :scheme
+         port :port
+         host :host} uri-obj]
+    (str scheme "://" host  (string/replace relative-url #"\.\." ""))))
+
+(defn fetch-relative-url-image [file fetch-url relative-url] 
+  (->> (make-full-url fetch-url relative-url)
+       (fetch-image file)))
+
+(defn is-url-relative? [url]
+  (relative? (uri url)))
+
 (defn fetch-images [url image-links]
   (doseq [x (get-only-valid-image-name image-links)]
-    (let [image-name (get-image-name x)] 
-      (when (not (fetch-image (get-image-name x) x))  
-        (fetch-no-protocol-image image-name x)))))
+    (let [image-name (get-image-name x)]
+      (if (is-url-relative? x) 
+        (when (not (fetch-relative-url-image image-name
+                                             url
+                                             x))  
+          (fetch-no-protocol-image image-name x))
+        (fetch-image (get-image-name x) x)))))
 
 (defn fetch-url [url]
   (http/get url
             (fn [{:keys [status headers body error]}] ;; asynchronous response handling
               (if error
-                (println "Failed, exception is " error)
+                (println "Failed, exception is : " error)
                 (->> (get-image-link body)
                      (fetch-images url))))))
+
+
 
 
