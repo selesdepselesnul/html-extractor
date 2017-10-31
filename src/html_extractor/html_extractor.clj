@@ -96,11 +96,11 @@
         (fetch-image (get-image-name x) x)))))
 
 (defn fetch-url [url]
-  (http/get url
-            (fn [{:keys [status headers body error]}] ;; asynchronous response handling
-              (if error
-                (println "Failed, exception is : " error)
-                (->> (get-image-link body)
-                     (fetch-images url))))))
-
-
+  (let [{:keys [status headers body error] :as resp} @(http/get url)]
+    (if error
+      (println "Failed, exception: " error)
+      (do
+        (println "Please wait ...")
+        (->> (get-image-link body)
+             (fetch-images url))
+        (println "Enjoy !"))))) 
