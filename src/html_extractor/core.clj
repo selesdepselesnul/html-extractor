@@ -1,10 +1,8 @@
 (ns html-extractor.core
   (:gen-class)
-  (:require [overtone.at-at :as at-at]
-            [progrock.core :as pr]
-            [clj-progress.core :refer :all]
-            [html-extractor.html-extractor :refer :all]
-            [org.httpkit.client :as http]))
+  (:require [html-extractor.html-extractor :refer :all]
+            [org.httpkit.client :as http]
+            [clojure.term.colors :refer :all]))
 
 (defn -main
   [& args]
@@ -12,5 +10,5 @@
              #(println "error")
              #(println "Please wait...")
              #(println "Finished, Enjoy !")
-             #(println (str "Store -> " %))))
+             #(println (reverse-color (str "Store -> " %)))))
 
