@@ -7,7 +7,10 @@
             [org.httpkit.client :as http]))
 
 (defn -main
-  "I don't do a whole lot ... yet."
   [& args]
-  (fetch-url (first args)))
+  (fetch-url (first args)
+             #(println "error")
+             #(println "Please wait...")
+             #(println "Finished, Enjoy !")
+             #(println (str "Store -> " %))))
 

@@ -85,7 +85,7 @@
 (defn is-url-relative? [url]
   (relative? (uri url)))
 
-(defn fetch-images [url image-links]
+(defn fetch-images [url after-downloading-completed image-links]
   (doseq [x image-links]
     (let [image-name (get-image-name x)]
       (if (is-url-relative? x) 
@@ -93,14 +93,15 @@
                                              url
                                              x))  
           (fetch-no-protocol-image image-name x))
-        (fetch-image (get-image-name x) x)))))
+        (fetch-image (get-image-name x) x))
+      (after-downloading-completed image-name))))
 
-(defn fetch-url [url]
+(defn fetch-url [url error-occur before-downloading after-downloading after-downloading-individual-pic-compl]
   (let [{:keys [status headers body error] :as resp} @(http/get url)]
     (if error
-      (println "Failed, exception: " error)
+      (error-occur error) 
       (do
-        (println "Please wait ...")
+        (before-downloading)
         (->> (get-image-link body)
-             (fetch-images url))
-        (println "Enjoy !"))))) 
+             (fetch-images url after-downloading-individual-pic-compl))
+        (after-downloading))))) 
