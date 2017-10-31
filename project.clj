@@ -6,7 +6,10 @@
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [http-kit "2.2.0"]
                  [enlive "1.1.6"]
-                 [lambdaisland/uri "1.1.0"]]
+                 [lambdaisland/uri "1.1.0"]
+                 [overtone/at-at "1.2.0"]
+                 [intervox/clj-progress "0.2.1"]
+                 [progrock "0.1.2"]]
   :main ^:skip-aot html-extractor.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
