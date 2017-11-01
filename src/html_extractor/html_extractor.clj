@@ -92,7 +92,8 @@
                                              x))  
           (fetch-no-protocol-image image-name x))
         (fetch-image (get-image-name x) x))
-      (after-downloading-completed image-name))))
+      (when (.exists (io/as-file image-name))
+        (after-downloading-completed image-name)))))
 
 (defn fetch-url
   [url action] 
