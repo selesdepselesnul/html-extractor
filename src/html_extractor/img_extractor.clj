@@ -1,4 +1,4 @@
-(ns html-extractor.html-extractor
+(ns html-extractor.img-extractor
   (:gen-class)
   (:require [org.httpkit.client :as http]
             [net.cgrand.enlive-html :as html]
@@ -95,7 +95,7 @@
       (when (.exists (io/as-file image-name))
         (after-downloading-completed image-name)))))
 
-(defn fetch-url
+(defn fetch-image-from-url
   [url action] 
   (let [{before-downloading :before-downloading
          after-downloading-each-item :after-downloading-each-item
@@ -109,3 +109,5 @@
         (->> (get-image-link body)
              (fetch-images url after-downloading-each-item))
         (after-downloading))))) 
+
+

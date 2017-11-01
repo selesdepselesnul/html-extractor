@@ -1,13 +1,13 @@
 (ns html-extractor.core
   (:gen-class)
-  (:require [html-extractor.html-extractor :refer :all]
+  (:require [html-extractor.img-extractor :refer :all]
             [org.httpkit.client :as http]
             [clojure.term.colors :refer :all]
             [clojure.string :as cljstr]))
 
 (defn -main
   [& args]
-  (fetch-url
+  (fetch-image-from-url
    (first args)
    {:before-downloading #(println "Please wait...")
     :after-downloading-each-item #(let [download-text (str "Saved -> " %)] 

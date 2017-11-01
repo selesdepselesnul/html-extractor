@@ -1,6 +1,6 @@
 (ns html-extractor.html-extractor-test
   (:require [clojure.test :refer :all]
-            [html-extractor.html-extractor :refer :all]))
+            [html-extractor.img-extractor :refer :all]))
 
 (def html-string-contain-img
   "<body>
