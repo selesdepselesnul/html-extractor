@@ -94,12 +94,17 @@
         (fetch-image (get-image-name x) x))
       (after-downloading-completed image-name))))
 
-(defn fetch-url [url error-occur before-downloading after-downloading after-downloading-individual-pic-compl]
-  (let [{:keys [status headers body error] :as resp} @(http/get url)]
+(defn fetch-url
+  [url action] 
+  (let [{before-downloading :before-downloading
+         after-downloading-each-item :after-downloading-each-item
+         after-downloading :after-downloading
+         on-error :on-error} action
+        {:keys [status headers body error] :as resp} @(http/get url)]
     (if error
-      (error-occur error) 
+      (on-error error) 
       (do
         (before-downloading)
         (->> (get-image-link body)
-             (fetch-images url after-downloading-individual-pic-compl))
+             (fetch-images url after-downloading-each-item))
         (after-downloading))))) 
