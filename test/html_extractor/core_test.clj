@@ -4,6 +4,7 @@
             [html-extractor.img-extractor-test]
             [html-extractor.util-test]))
 
-
-(run-tests 'html-extractor.img-extractor-test
-           'html-extractor.util-test)
+(run-tests
+ 'html-extractor.util-test
+ 'html-extractor.img-extractor-test
+ 'html-extractor.txt-extractor-test)
