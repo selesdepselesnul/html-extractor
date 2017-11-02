@@ -3,20 +3,40 @@
   (:require [html-extractor.util :as hte-util]
             [net.cgrand.enlive-html :as html]))
 
-(defn get-p [body]
+(defn html->p [body]
   (-> body
       hte-util/get-resource
       (html/select [:p])))
 
-(defn process-body [resp body]
-  (->> (get-p body)
-       (map #(get % :content))
-       (filter (comp not nil?))
-       flatten))
+(defn p->text [x]
+  (:content x))
 
-(hte-util/fetch-url "https://en.wikipedia.org/wiki/Alonzo_Church"
-                    process-body
-                    (fn [error] (println "error")))
+(defn html->text-seq [body]
+  (->> (html->p body)
+       (map p->text)
+       (filter (comp not nil?))
+       flatten
+       (map  #(if (map? %) (p->text %) %))
+       flatten
+       (filter string?)))
+
+(defn html->content-string [body]
+  (->> (html->text-seq body)
+       (clojure.string/join "")))
+
+(defn fetch-txt-from-url
+  [url file-name action]
+  (let [{before-downloading :before-downloading
+         after-downloading :after-downloading
+         on-error :on-error} action]
+    (hte-util/fetch-url url
+                        (fn [_ body]
+                          (before-downloading)
+                          (->> (html->content-string body)
+                               (spit file-name))
+                          (after-downloading)) 
+                        #(on-error %))))
+
 
 
 
