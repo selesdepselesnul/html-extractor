@@ -81,18 +81,17 @@
         (after-downloading-completed image-name)))))
 
 (defn fetch-image-from-url
-  [url action] 
+  [url action]
   (let [{before-downloading :before-downloading
          after-downloading-each-item :after-downloading-each-item
          after-downloading :after-downloading
-         on-error :on-error} action
-        {:keys [status headers body error] :as resp} @(http/get url)]
-    (if error
-      (on-error error) 
-      (do
-        (before-downloading)
-        (->> (get-image-link body)
-             (fetch-images url after-downloading-each-item))
-        (after-downloading))))) 
+         on-error :on-error} action]
+    (hte-util/fetch-url url
+                        #(do
+                           (before-downloading)
+                           (->> (get-image-link %2)
+                                (fetch-images url after-downloading-each-item))
+                           (after-downloading))
+                        #(on-error %)))) 
 
 
