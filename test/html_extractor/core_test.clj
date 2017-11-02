@@ -1,7 +1,9 @@
 (ns html-extractor.core-test
   (:require [clojure.test :refer :all]
-            [html-extractor.core :refer :all]))
+            [html-extractor.core :refer :all]
+            [html-extractor.img-extractor-test]
+            [html-extractor.util-test]))
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
+
+(run-tests 'html-extractor.img-extractor-test
+           'html-extractor.util-test)

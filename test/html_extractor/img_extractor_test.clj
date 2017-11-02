@@ -1,4 +1,4 @@
-(ns html-extractor.html-extractor-test
+(ns html-extractor.img-extractor-test
   (:require [clojure.test :refer :all]
             [html-extractor.img-extractor :refer :all]))
 
@@ -15,9 +15,9 @@
         <img src=''>
   </bod")
 
-(testing "get-image-link"
-  (testing "with html string contains img"
-    (= ["http://example.com/image.png" "http://example.com/image.jpg"]
-       (vec (get-image-link html-string-contain-img))))
-  (testing "with html string without img"
-    (= [] (vec (get-image-link html-string-without-img)))))
+(deftest get-image-link-test
+  (testing "contains img"
+    (is (= ["http://example.com/image.png" "http://example.com/image.jpg"]
+           (vec (get-image-link html-string-contain-img)))))
+  (testing "without img"
+    (is (= [] (vec (get-image-link html-string-without-img))))))
