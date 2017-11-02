@@ -6,19 +6,10 @@
             [clojure.repl :as repl]
             [clojure.java.io :as io]
             [lambdaisland.uri :refer [uri relative?]]
-            [clojure.pprint :refer [pprint]])
+            [clojure.pprint :refer [pprint]]
+            [html-extractor.util :as hte-util])
   (:import (java.io.StringReader)
            (java.net URL)))
-
-(defn copy [uri file]
-  (with-open [in (io/input-stream uri)
-              out (io/output-stream file)]
-    (io/copy in out)))
-
-(defn get-resource [html-string]
-  (-> html-string
-      java.io.StringReader.
-      html/html-resource))
 
 (defn select-image [resource]
   (->> (html/select resource [:img])
@@ -27,7 +18,7 @@
 
 (defn get-image-link [html-string]
   (-> html-string
-      get-resource
+      hte-util/get-resource
       select-image))
 
 (defn fetch-image [file url] 
@@ -51,9 +42,6 @@
       get-image-name
       get-image-ext
       is-extension-valid?))
-
-(defn is-full-url? [url]
-  (.getPath (URL. url)))
 
 (defn map-to-valid-image-url [base-url url]
   (str base-url url))
@@ -80,13 +68,10 @@
   (->> (make-full-url fetch-url relative-url)
        (fetch-image file)))
 
-(defn is-url-relative? [url]
-  (relative? (uri url)))
-
 (defn fetch-images [url after-downloading-completed image-links]
   (doseq [x image-links]
     (let [image-name (get-image-name x)]
-      (if (is-url-relative? x) 
+      (if (hte-util/is-url-relative? x) 
         (when (not (fetch-relative-url-image image-name
                                              url
                                              x))  
