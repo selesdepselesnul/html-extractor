@@ -17,12 +17,8 @@
 (defn is-url-relative? [url]
   (relative? (uri url)))
 
-(defn fetch-url [url on-success on-error] 
+(defn fetch-url [url on-success on-error]
   (let [{:keys [error body] :as resp} @(http/get url)]
     (if error
       (on-error error)
       (on-success resp body))))
-
-
-
-

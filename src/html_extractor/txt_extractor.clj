@@ -35,4 +35,4 @@
                           (->> (html->content-string body)
                                (spit file-name))
                           (after-downloading))
-                        #(on-error %))))
+                        on-error)))

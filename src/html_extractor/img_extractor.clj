@@ -21,8 +21,8 @@
       hte-util/get-resource
       select-image))
 
-(defn fetch-image [file url] 
-  (try (with-open [in (io/input-stream url) 
+(defn fetch-image [file url]
+  (try (with-open [in (io/input-stream url)
                    out (io/output-stream file)]
          (io/copy in out)
          url)
@@ -38,7 +38,7 @@
   (contains? #{"jpg" "png" "svg" "gif"} extension))
 
 (defn is-valid-image-link? [image-link]
-  (-> image-link 
+  (-> image-link
       get-image-name
       get-image-ext
       is-extension-valid?))
@@ -51,7 +51,8 @@
        (filter is-valid-image-link?)))
 
 (defn fetch-no-protocol-image
-  ([image-name url] (fetch-no-protocol-image image-name url ["https:" "https://" "http:" "http://"]))
+  ([image-name url]
+   (fetch-no-protocol-image image-name url ["https:" "https://" "http:" "http://"]))
   ([image-name url protocol-patterns]
    (when (and (not-empty protocol-patterns)
               (not (fetch-image image-name (str (first protocol-patterns) url))))
@@ -64,17 +65,17 @@
          host :host} uri-obj]
     (str scheme "://" host  (string/replace relative-url #"\.\." ""))))
 
-(defn fetch-relative-url-image [file fetch-url relative-url] 
+(defn fetch-relative-url-image [file fetch-url relative-url]
   (->> (make-full-url fetch-url relative-url)
        (fetch-image file)))
 
 (defn fetch-images [url after-downloading-completed image-links]
   (doseq [x image-links]
     (let [image-name (get-image-name x)]
-      (if (hte-util/is-url-relative? x) 
+      (if (hte-util/is-url-relative? x)
         (when (not (fetch-relative-url-image image-name
                                              url
-                                             x))  
+                                             x))
           (fetch-no-protocol-image image-name x))
         (fetch-image (get-image-name x) x))
       (when (.exists (io/as-file image-name))
@@ -87,11 +88,9 @@
          after-downloading :after-downloading
          on-error :on-error} action]
     (hte-util/fetch-url url
-                        #(do
-                           (before-downloading)
-                           (->> (get-image-link %2)
-                                (fetch-images url after-downloading-each-item))
-                           (after-downloading))
-                        #(on-error %)))) 
-
-
+                        (fn [_ body]
+                          (before-downloading)
+                          (->> (get-image-link body)
+                               (fetch-images url after-downloading-each-item))
+                          (after-downloading))
+                        on-error)))
