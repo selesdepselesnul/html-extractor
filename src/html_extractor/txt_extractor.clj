@@ -34,9 +34,5 @@
                           (before-downloading)
                           (->> (html->content-string body)
                                (spit file-name))
-                          (after-downloading)) 
+                          (after-downloading))
                         #(on-error %))))
-
-
-
-
