@@ -23,8 +23,11 @@
       (on-error error)
       (on-success resp body))))
 
+(defn ext-seq->trimmed-ext-seq [ext-seq]
+  (map clojure.string/trim ext-seq))
+
 (defn string-exts->set [string-exts]
-  (->> (-> string-exts
-           (string/split #","))
-       (map clojure.string/trim)
-       set))
+  (-> string-exts
+      (string/split #",")
+      ext-seq->trimmed-ext-seq
+      set))
