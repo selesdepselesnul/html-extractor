@@ -16,11 +16,6 @@
        (map #(:src (:attrs %)))
        (filter #(not (string/blank? %)))))
 
-(defn get-image-link [html-string]
-  (-> html-string
-      hte-util/get-resource
-      select-image))
-
 (defn fetch-image [file url]
   (try (with-open [in (io/input-stream url)
                    out (io/output-stream file)]
@@ -34,14 +29,23 @@
 (defn get-image-ext [image]
   (last (string/split image #"\.")))
 
-(defn is-extension-valid? [extension]
-  (contains? #{"jpg" "png" "svg" "gif"} extension))
+(defn is-extension-valid? [extension valid-extension]
+  (contains? valid-extension extension))
 
-(defn is-valid-image-link? [image-link]
+(defn is-valid-image-link? [image-link valid-extension]
   (-> image-link
       get-image-name
       get-image-ext
-      is-extension-valid?))
+      (is-extension-valid? valid-extension)))
+
+(defn get-image-link [html-string & [valid-extension]]
+  (let [image-links (-> html-string
+                        hte-util/get-resource
+                        select-image)]
+    (if (nil? valid-extension)
+      image-links
+      (->> image-links
+           (filter #(is-valid-image-link? % valid-extension))))))
 
 (defn map-to-valid-image-url [base-url url]
   (str base-url url))
@@ -82,7 +86,7 @@
         (after-downloading-completed image-name)))))
 
 (defn fetch-image-from-url
-  [url action]
+  [url action & [valid-extension]]
   (let [{before-downloading :before-downloading
          after-downloading-each-item :after-downloading-each-item
          after-downloading :after-downloading
@@ -90,7 +94,7 @@
     (hte-util/fetch-url url
                         (fn [_ body]
                           (before-downloading)
-                          (->> (get-image-link body)
+                          (->> (get-image-link body valid-extension)
                                (fetch-images url after-downloading-each-item))
                           (after-downloading))
                         on-error)))

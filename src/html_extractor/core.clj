@@ -2,6 +2,7 @@
   (:gen-class)
   (:require [html-extractor.img-extractor :refer :all]
             [html-extractor.txt-extractor :refer :all]
+            [html-extractor.util :refer :all]
             [org.httpkit.client :as http]
             [clojure.term.colors :refer :all]
             [clojure.string :as cljstr]
@@ -15,7 +16,7 @@
                        :after-downloading #(println "Finished, Enjoy !")
                        :on-error #(println "error")}))
 
-(defn extract-image [url]
+(defn extract-image [url & [valid-extension]]
   (println "extract image")
   (fetch-image-from-url
    url
@@ -28,12 +29,14 @@
           download-text
           (reverse-color download-text))))
     :after-downloading #(println "Finished, Enjoy !")
-    :on-error #(println "error")}))
+    :on-error #(println "error")}
+   valid-extension))
 
 (def cli-options
   [["-u" "--url url" "url to fetch"]
    ["-i" "--image" "fetch image"]
    ["-t" "--text" "fetch text"]
+   ["-e" "--extensions extensions" "only these extensions"]
    ["-n" "--file-name file name" "file name store in fs"]])
 
 (defn -main
@@ -42,7 +45,11 @@
         (:options (parse-opts args cli-options))]
     (when-let [url (get options :url)]
       (cond
-        (contains? options :image) (extract-image url)
+        (contains? options :image)
+        (if-let [extensions (get options :extensions)]
+          (extract-image url
+                         (string-exts->set extensions))
+          (extract-image url))
         (and (contains? options :text)
              (contains? options :file-name))
         (extract-text url (:file-name options))))))

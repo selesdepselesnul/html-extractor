@@ -22,3 +22,9 @@
     (if error
       (on-error error)
       (on-success resp body))))
+
+(defn string-exts->set [string-exts]
+  (->> (-> string-exts
+           (string/split #","))
+       (map clojure.string/trim)
+       set))
