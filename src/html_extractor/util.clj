@@ -27,7 +27,8 @@
   (map clojure.string/trim ext-seq))
 
 (defn string-exts->set [string-exts]
-  (-> string-exts
-      (string/split #",")
-      ext-seq->trimmed-ext-seq
-      set))
+  (when-not (nil? string-exts)
+    (-> string-exts
+        (string/split #",")
+        ext-seq->trimmed-ext-seq
+        set)))

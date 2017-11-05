@@ -10,4 +10,6 @@
 
 (deftest string-exts->set-test
   (testing "non empty string"
-    (is (= #{"gif" "png" "jpg"} (sut/string-exts->set "jpg, png, gif")))))
+    (is (= #{"gif" "png" "jpg"} (sut/string-exts->set "jpg, png, gif"))))
+  (testing "nil string"
+    (nil? (sut/string-exts->set nil))))
