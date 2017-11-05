@@ -8,3 +8,6 @@
   (testing "non relative url"
     (is (= true (sut/is-url-relative? "example.com/image.png")))))
 
+(deftest string-exts->set-test
+  (testing "non empty string"
+    (is (= #{"gif" "png" "jpg"} (sut/string-exts->set "jpg, png, gif")))))
